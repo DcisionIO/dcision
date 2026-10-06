@@ -1,0 +1,59 @@
+{
+  "name": "Agent Routing",
+  "description": "Choose the tool an AI agent should use and whether it needs an LLM.",
+  "schema": {
+    "stateSchema": {
+      "kind": "object",
+      "fields": [
+        {
+          "key": "task",
+          "type": "string",
+          "required": true,
+          "description": "What the user asked the agent"
+        }
+      ]
+    },
+    "questions": [
+      {
+        "key": "selected_tool",
+        "type": "choice",
+        "instructions": "Which tool should the agent use first?",
+        "options": [
+          {
+            "value": "search",
+            "description": "needs fresh information from the web"
+          },
+          {
+            "value": "database",
+            "description": "needs data from our own records"
+          },
+          {
+            "value": "calculator",
+            "description": "needs a calculation"
+          },
+          {
+            "value": "none",
+            "description": "can answer directly"
+          }
+        ]
+      },
+      {
+        "key": "needs_reasoning",
+        "type": "probability",
+        "instructions": "Does this task need multi-step reasoning from a large language model?"
+      }
+    ],
+    "policies": [
+      {
+        "field": "needs_reasoning",
+        "on": "output",
+        "operator": "gte",
+        "value": 0.8,
+        "action": "fallback"
+      }
+    ]
+  },
+  "sampleState": {
+    "task": "How many orders did we ship to Germany last week?"
+  }
+}

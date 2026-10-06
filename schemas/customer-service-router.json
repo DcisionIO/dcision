@@ -1,0 +1,79 @@
+{
+  "name": "Customer Service Router (intent routing)",
+  "description": "Classify intent and complexity in one call: lookups go to code, billing/tech to specialist LLMs, complaints and hard cases to humans.",
+  "schema": {
+    "stateSchema": {
+      "kind": "text"
+    },
+    "questions": [
+      {
+        "key": "intent",
+        "type": "choice",
+        "instructions": "What is the customer asking for?",
+        "options": [
+          {
+            "value": "order_status",
+            "description": "where is my order, tracking, delivery date (answered by a database lookup)"
+          },
+          {
+            "value": "billing_question",
+            "description": "charges, invoices, refunds, payment methods"
+          },
+          {
+            "value": "technical_issue",
+            "description": "the product or app is not working as expected"
+          },
+          {
+            "value": "complaint",
+            "description": "dissatisfaction, wants to escalate or talk to a manager"
+          }
+        ]
+      },
+      {
+        "key": "complexity",
+        "type": "score",
+        "instructions": "How complex is it to resolve this request?",
+        "scale": [
+          "simple",
+          "moderate",
+          "complex"
+        ]
+      }
+    ],
+    "policies": [
+      {
+        "field": "intent",
+        "on": "output",
+        "operator": "eq",
+        "value": "complaint",
+        "action": "escalate"
+      },
+      {
+        "field": "intent",
+        "on": "output",
+        "operator": "eq",
+        "value": "technical_issue",
+        "and": [
+          {
+            "field": "complexity",
+            "on": "score",
+            "operator": "gte",
+            "value": 2.5
+          }
+        ],
+        "action": "escalate"
+      },
+      {
+        "field": "complexity",
+        "on": "confidence",
+        "operator": "lt",
+        "value": 0.5,
+        "action": "escalate"
+      }
+    ],
+    "settings": {
+      "fallbackAction": "escalate"
+    }
+  },
+  "sampleState": "My order #4821 was supposed to arrive yesterday. Can you tell me where it is?"
+}

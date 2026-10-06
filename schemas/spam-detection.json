@@ -1,0 +1,45 @@
+{
+  "name": "Spam Detection",
+  "description": "Estimate spam probability and decide whether to allow, review or block.",
+  "schema": {
+    "stateSchema": {
+      "kind": "text"
+    },
+    "questions": [
+      {
+        "key": "spam_probability",
+        "type": "probability",
+        "instructions": "Is this message spam, phishing or an unsolicited promotion?"
+      },
+      {
+        "key": "action",
+        "type": "choice",
+        "instructions": "What should we do with this message?",
+        "options": [
+          {
+            "value": "allow",
+            "description": "legitimate message"
+          },
+          {
+            "value": "review",
+            "description": "unclear, a moderator should check"
+          },
+          {
+            "value": "block",
+            "description": "clear spam, scam or abuse"
+          }
+        ]
+      }
+    ],
+    "policies": [
+      {
+        "field": "action",
+        "on": "output",
+        "operator": "eq",
+        "value": "block",
+        "action": "block"
+      }
+    ]
+  },
+  "sampleState": "Congratulations! You won a $1000 gift card, click here to claim now."
+}

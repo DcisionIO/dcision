@@ -1,0 +1,48 @@
+{
+  "name": "RAG Relevance",
+  "description": "Check whether a retrieved chunk answers the query before calling the LLM.",
+  "schema": {
+    "stateSchema": {
+      "kind": "object",
+      "fields": [
+        {
+          "key": "query",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "chunk",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    "questions": [
+      {
+        "key": "relevant",
+        "type": "probability",
+        "instructions": "Does the chunk help answer the query?"
+      },
+      {
+        "key": "relevance",
+        "type": "score",
+        "instructions": "How relevant is the chunk to the query?",
+        "scale": [
+          "none",
+          "partial",
+          "direct"
+        ]
+      },
+      {
+        "key": "retrieve_more",
+        "type": "probability",
+        "instructions": "Should the system retrieve more context before answering?"
+      }
+    ],
+    "policies": []
+  },
+  "sampleState": {
+    "query": "What is the refund window for annual plans?",
+    "chunk": "Annual plans can be refunded within 30 days of purchase."
+  }
+}

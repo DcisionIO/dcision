@@ -1,0 +1,154 @@
+{
+  "name": "Resume Screening (composite scoring)",
+  "description": "Score each skill on its own rubric and combine them with role-specific weights — Senior IC vs Engineering Manager.",
+  "schema": {
+    "stateSchema": {
+      "kind": "object",
+      "fields": [
+        {
+          "key": "resume",
+          "type": "string",
+          "required": true,
+          "description": "Resume text"
+        }
+      ]
+    },
+    "questions": [
+      {
+        "key": "python_depth",
+        "type": "score",
+        "instructions": "How deep is the candidate's Python experience?",
+        "scale": [
+          "none",
+          "basic",
+          "working",
+          "strong",
+          "expert"
+        ]
+      },
+      {
+        "key": "team_leadership",
+        "type": "score",
+        "instructions": "How much team leadership has the candidate shown?",
+        "scale": [
+          "none",
+          "informal",
+          "tech lead",
+          "manager",
+          "manager of managers"
+        ]
+      },
+      {
+        "key": "system_design",
+        "type": "score",
+        "instructions": "How strong is the candidate's system design experience?",
+        "scale": [
+          "none",
+          "basic",
+          "working",
+          "strong",
+          "expert"
+        ]
+      },
+      {
+        "key": "generalist",
+        "type": "score",
+        "instructions": "How broad is the candidate's experience across the stack?",
+        "scale": [
+          "narrow",
+          "some",
+          "broad",
+          "very broad",
+          "full stack and ops"
+        ]
+      }
+    ],
+    "composites": [
+      {
+        "key": "senior_ic",
+        "description": "Senior IC fit: depth and design first",
+        "terms": [
+          {
+            "question": "python_depth",
+            "weight": 0.4
+          },
+          {
+            "question": "team_leadership",
+            "weight": 0.1
+          },
+          {
+            "question": "system_design",
+            "weight": 0.4
+          },
+          {
+            "question": "generalist",
+            "weight": 0.1
+          }
+        ]
+      },
+      {
+        "key": "eng_manager",
+        "description": "Engineering Manager fit: leadership first",
+        "terms": [
+          {
+            "question": "python_depth",
+            "weight": 0.15
+          },
+          {
+            "question": "team_leadership",
+            "weight": 0.4
+          },
+          {
+            "question": "system_design",
+            "weight": 0.2
+          },
+          {
+            "question": "generalist",
+            "weight": 0.25
+          }
+        ]
+      }
+    ],
+    "policies": [
+      {
+        "field": "senior_ic",
+        "on": "output",
+        "operator": "gte",
+        "value": 0.7,
+        "action": "continue"
+      },
+      {
+        "field": "eng_manager",
+        "on": "output",
+        "operator": "gte",
+        "value": 0.7,
+        "action": "continue"
+      },
+      {
+        "field": "senior_ic",
+        "on": "output",
+        "operator": "lt",
+        "value": 0.35,
+        "and": [
+          {
+            "field": "eng_manager",
+            "on": "output",
+            "operator": "lt",
+            "value": 0.35
+          }
+        ],
+        "action": "block"
+      },
+      {
+        "field": "senior_ic",
+        "on": "output",
+        "operator": "lt",
+        "value": 0.7,
+        "action": "escalate"
+      }
+    ]
+  },
+  "sampleState": {
+    "resume": "8 years building Python services (Django, FastAPI). Designed the event pipeline for 20M users at a fintech. Tech lead of 4 engineers for 2 years. Some Terraform and on-call experience."
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "name": "Support Ticket Triage (fan-out)",
+  "description": "One call answers category, bug severity, repro steps, refund and frustration; AND rules decide which answers matter.",
+  "schema": {
+    "stateSchema": {
+      "kind": "object",
+      "fields": [
+        {
+          "key": "subject",
+          "type": "string",
+          "required": false,
+          "description": "Ticket subject"
+        },
+        {
+          "key": "body",
+          "type": "string",
+          "required": true,
+          "description": "Ticket text"
+        }
+      ]
+    },
+    "questions": [
+      {
+        "key": "category",
+        "type": "choice",
+        "instructions": "What kind of support ticket is this?",
+        "options": [
+          {
+            "value": "bug_report",
+            "description": "something in the product is broken or behaves incorrectly"
+          },
+          {
+            "value": "billing",
+            "description": "charges, invoices, refunds, plans, payment methods"
+          },
+          {
+            "value": "feature_request",
+            "description": "asks for something the product doesn't do yet"
+          },
+          {
+            "value": "how_to",
+            "description": "asks how to do something that already works"
+          }
+        ]
+      },
+      {
+        "key": "bug_severity",
+        "type": "score",
+        "instructions": "If this describes a bug, how severe is it for the customer?",
+        "scale": [
+          "cosmetic",
+          "minor",
+          "major",
+          {
+            "label": "critical",
+            "rubric": "outage, data loss, security issue or money at risk"
+          }
+        ]
+      },
+      {
+        "key": "has_reproducible_steps",
+        "type": "probability",
+        "instructions": "Does the ticket include steps to reproduce the problem?"
+      },
+      {
+        "key": "refund_requested",
+        "type": "probability",
+        "instructions": "Does the customer explicitly ask for a refund or credit?"
+      },
+      {
+        "key": "frustration",
+        "type": "score",
+        "instructions": "How frustrated is the customer?",
+        "scale": [
+          "calm",
+          "annoyed",
+          "frustrated",
+          "very angry"
+        ]
+      }
+    ],
+    "policies": [
+      {
+        "field": "category",
+        "on": "output",
+        "operator": "eq",
+        "value": "bug_report",
+        "and": [
+          {
+            "field": "bug_severity",
+            "on": "output",
+            "operator": "gte",
+            "value": 4
+          }
+        ],
+        "action": "escalate"
+      },
+      {
+        "field": "refund_requested",
+        "on": "output",
+        "operator": "gte",
+        "value": 0.8,
+        "action": "escalate"
+      },
+      {
+        "field": "frustration",
+        "on": "score",
+        "operator": "gte",
+        "value": 3.5,
+        "action": "escalate"
+      }
+    ],
+    "settings": {
+      "fallbackAction": "escalate"
+    }
+  },
+  "sampleState": {
+    "subject": "Payouts failing",
+    "body": "Our payouts have been failing for 3 days and customers are complaining. Steps: open Payouts, click Retry, error 500. Please fix ASAP."
+  }
+}

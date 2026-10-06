@@ -1,0 +1,82 @@
+{
+  "name": "Support Routing",
+  "description": "Pick the department, the urgency and whether a human is needed.",
+  "schema": {
+    "stateSchema": {
+      "kind": "object",
+      "fields": [
+        {
+          "key": "message",
+          "type": "string",
+          "required": true,
+          "description": "Customer message"
+        },
+        {
+          "key": "plan",
+          "type": "string",
+          "required": false,
+          "description": "Customer plan"
+        }
+      ]
+    },
+    "questions": [
+      {
+        "key": "department",
+        "type": "choice",
+        "instructions": "Which department should handle this message?",
+        "minConfidence": 0.6,
+        "options": [
+          {
+            "value": "billing",
+            "description": "invoices, charges, refunds, payment methods"
+          },
+          {
+            "value": "technical",
+            "description": "bugs, errors, integrations, outages"
+          },
+          {
+            "value": "account",
+            "description": "login, access, users, settings"
+          },
+          {
+            "value": "sales",
+            "description": "upgrades, new plans, quotes"
+          }
+        ]
+      },
+      {
+        "key": "urgency",
+        "type": "score",
+        "instructions": "How urgent is this request?",
+        "scale": [
+          "low",
+          "normal",
+          "high",
+          "urgent"
+        ]
+      },
+      {
+        "key": "human_required",
+        "type": "probability",
+        "instructions": "Does this message need a human instead of an automated answer?",
+        "criteria": {
+          "yes": "angry customer, legal threat, data loss, cancellation",
+          "no": "simple question answered by docs"
+        }
+      }
+    ],
+    "policies": [
+      {
+        "field": "human_required",
+        "on": "output",
+        "operator": "gte",
+        "value": 0.7,
+        "action": "escalate"
+      }
+    ]
+  },
+  "sampleState": {
+    "message": "I was charged twice this month and need a refund today.",
+    "plan": "pro"
+  }
+}

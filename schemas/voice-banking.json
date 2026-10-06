@@ -1,0 +1,71 @@
+{
+  "name": "Voice Banking Commands (confidence-gated)",
+  "description": "Classify a spoken banking command; risky actions need more confidence than read-only ones before acting.",
+  "schema": {
+    "stateSchema": {
+      "kind": "text"
+    },
+    "questions": [
+      {
+        "key": "intent",
+        "type": "choice",
+        "instructions": "What does the customer want to do with their account?",
+        "minConfidence": 0.6,
+        "options": [
+          {
+            "value": "check_balance",
+            "description": "hear the balance or recent transactions (read-only)"
+          },
+          {
+            "value": "transfer_money",
+            "description": "start a new transfer to someone"
+          },
+          {
+            "value": "approve_transfer",
+            "description": "confirm a transfer that is waiting for approval"
+          },
+          {
+            "value": "block_card",
+            "description": "block or freeze a card"
+          }
+        ]
+      }
+    ],
+    "policies": [
+      {
+        "field": "intent",
+        "on": "output",
+        "operator": "eq",
+        "value": "approve_transfer",
+        "and": [
+          {
+            "field": "intent",
+            "on": "confidence",
+            "operator": "lt",
+            "value": 0.9
+          }
+        ],
+        "action": "escalate"
+      },
+      {
+        "field": "intent",
+        "on": "output",
+        "operator": "eq",
+        "value": "transfer_money",
+        "and": [
+          {
+            "field": "intent",
+            "on": "confidence",
+            "operator": "lt",
+            "value": 0.8
+          }
+        ],
+        "action": "escalate"
+      }
+    ],
+    "settings": {
+      "fallbackAction": "escalate"
+    }
+  },
+  "sampleState": "Yeah, go ahead and approve that payment to my landlord."
+}

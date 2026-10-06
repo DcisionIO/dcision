@@ -1,0 +1,116 @@
+{
+  "name": "Lead Qualification",
+  "description": "Score purchase intent, set priority and route an inbound lead.",
+  "schema": {
+    "stateSchema": {
+      "kind": "object",
+      "fields": [
+        {
+          "key": "message",
+          "type": "string",
+          "required": true,
+          "description": "Inbound lead message"
+        },
+        {
+          "key": "company_size",
+          "type": "number",
+          "required": false,
+          "description": "Employee count"
+        },
+        {
+          "key": "source",
+          "type": "string",
+          "required": false,
+          "description": "website, referral, ads…"
+        }
+      ]
+    },
+    "questions": [
+      {
+        "key": "purchase_intent",
+        "type": "probability",
+        "instructions": "Does this lead have real intent to buy in the next 30 days?",
+        "criteria": {
+          "yes": "asks for pricing, a demo, a quote or a start date",
+          "no": "just browsing, student, vendor or spam"
+        }
+      },
+      {
+        "key": "priority",
+        "type": "score",
+        "instructions": "How urgent is it to answer this lead?",
+        "scale": [
+          "low",
+          "medium",
+          "high",
+          "critical"
+        ]
+      },
+      {
+        "key": "route",
+        "type": "choice",
+        "instructions": "Which team should receive this lead?",
+        "options": [
+          {
+            "value": "sales",
+            "description": "high intent, ready to talk to sales"
+          },
+          {
+            "value": "sdr",
+            "description": "some intent, needs qualification"
+          },
+          {
+            "value": "nurture",
+            "description": "early stage, send content"
+          },
+          {
+            "value": "spam",
+            "description": "spam, vendor pitch or irrelevant"
+          }
+        ]
+      }
+    ],
+    "composites": [
+      {
+        "key": "lead_score",
+        "description": "0–1 ranking: intent counts double, priority adds, spam-like routes don't count",
+        "terms": [
+          {
+            "question": "purchase_intent",
+            "weight": 2
+          },
+          {
+            "question": "priority",
+            "weight": 1
+          },
+          {
+            "question": "route",
+            "option": "sales",
+            "weight": 1
+          }
+        ]
+      }
+    ],
+    "policies": [
+      {
+        "field": "route",
+        "on": "output",
+        "operator": "eq",
+        "value": "spam",
+        "action": "block"
+      },
+      {
+        "field": "purchase_intent",
+        "on": "confidence",
+        "operator": "lt",
+        "value": 0.6,
+        "action": "escalate"
+      }
+    ]
+  },
+  "sampleState": {
+    "message": "We need pricing for 500 users and want to start next month.",
+    "company_size": 500,
+    "source": "website"
+  }
+}
